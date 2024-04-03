@@ -5,29 +5,30 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Employee;
 
 class EmployeeController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
     public function index()
     {
         $pageTitle = 'Employee List';
 
         // RAW SQL QUERY
         $employees = DB::select('
-        select *, employees.id as employee_id, positions.name as position_name
-        from employees
-        left join positions on employees.position_id = positions.id
-        ');
+             select *, employees.id as employee_id, positions.name as position_name
+             from employees
+             left join positions on employees.position_id = positions.id
+         ');
 
         return view('employee.index', [
             'pageTitle' => $pageTitle,
             'employees' => $employees
         ]);
     }
-
 
     /**
      * Show the form for creating a new resource.
@@ -40,8 +41,6 @@ class EmployeeController extends Controller
 
         return view('employee.create', compact('pageTitle', 'positions'));
     }
-
-
 
     /**
      * Store a newly created resource in storage.
@@ -85,6 +84,7 @@ class EmployeeController extends Controller
     public function show(string $id)
     {
         $pageTitle = 'Employee Detail';
+        // $employee = Employee::find($id);
 
         // RAW SQL QUERY
         $employee = collect(DB::select('
@@ -92,7 +92,7 @@ class EmployeeController extends Controller
         from employees
         left join positions on employees.position_id = positions.id
         where employees.id = ?
-    ', [$id]))->first();
+        ', [$id]))->first();
 
         return view('employee.show', compact('pageTitle', 'employee'));
     }
@@ -103,15 +103,35 @@ class EmployeeController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $pageTitle = 'Employee Edit';
+
+        // RAW SQL QUERY
+        $employee = collect(DB::select('
+            select *, employees.id as employee_id, positions.name as position_name
+            from employees
+            left join positions on employees.position_id = positions.id
+            where employees.id = ?
+        ', [$id]))->first();
+        $positions = DB::select('select * from positions');
+        return view('employee.edit', compact('pageTitle', 'employee', 'positions'));
     }
+
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, string $id)
     {
-        //
+        // INSERT QUERY
+        DB::table('employees')->where('id', $id)->update([
+            'firstname' => $request->firstName,
+            'lastname' => $request->lastName,
+            'email' => $request->email,
+            'age' => $request->age,
+            'position_id' => $request->position,
+        ]);
+
+        return redirect()->route('employees.index');
     }
 
     /**

@@ -99,3 +99,7 @@ Route::get('download-file/{employeeId}', [EmployeeController::class, 'downloadFi
 Route::get('home', [HomeController::class, 'index'])->name('home');
 Route::get('profile', ProfileController::class)->name('profile');
 Route::resource('employees', EmployeeController::class);
+
+Route::get('getEmployees', [EmployeeController::class, 'getData'])->name('employees.getData');
+
+Route::get('exportExcel', [EmployeeController::class, 'exportExcel'])->name('employees.exportExcel');

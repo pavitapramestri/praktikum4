@@ -11,6 +11,7 @@ use App\Models\Employee;
 use App\Models\Position;
 use App\Position as AppPosition;
 use Illuminate\Support\Facades\Storage;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class EmployeeController extends Controller
 {
@@ -21,13 +22,12 @@ class EmployeeController extends Controller
     public function index()
     {
         $pageTitle = 'Employee List';
-        // ELOQUENT
-        $employees = AppEmployee::all();
-        return view('employee.index', [
-            'pageTitle' => $pageTitle,
-            'employees' => $employees
-        ]);
+
+        confirmDelete();
+
+        return view('employee.index', compact('pageTitle'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -84,6 +84,9 @@ class EmployeeController extends Controller
         }
 
         $employee->save();
+        // return redirect()->route('employees.index');
+
+        Alert::success('Added Successfully', 'Employee Data Added Successfully.');
 
         return redirect()->route('employees.index');
     }
@@ -139,7 +142,26 @@ class EmployeeController extends Controller
         $employee->position_id = $request->position;
         $employee->save();
         return redirect()->route('employees.index');
+
+        //CV
+        if ($request->hasFile('cv')) {
+            $file = $request->file('cv');
+            $originalFilename = $file->getClientOriginalName();
+            $encryptedFilename = $file->hashName();
+            $file->store('public/files' . $employee->encrypted_filename);
+
+
+            $employee->original_filename = $originalFilename;
+            $employee->encrypted_filename = $encryptedFilename;
+        }
+        $employee->save();
+        // return redirect()->route('employees.index');
+
+        Alert::success('Changed Successfully', 'Employee Data Changed Successfully.');
+
+        return redirect()->route('employees.index');
     }
+
 
     /**
      * Remove the specified resource from storage.
@@ -147,8 +169,16 @@ class EmployeeController extends Controller
     public function destroy(string $id)
     {
         // ELOQUENT
-        AppEmployee::find($id)->delete();
+        $employee = AppEmployee::find($id);
+
+        //hapus cv
+        if ($employee->encrypted_filename) {
+            Storage::delete(['public/files/' . $employee->encrypted_filename]);
+        }
+
+        $employee->delete();
         return redirect()->route('employees.index');
+        Alert::success('Deleted Successfully', 'Employee Data Deleted Successfully.');
     }
 
     public function downloadFile($employeeId)
@@ -159,6 +189,20 @@ class EmployeeController extends Controller
 
         if (Storage::exists($encryptedFilename)) {
             return Storage::download($encryptedFilename, $downloadFilename);
+        }
+    }
+
+    public function getData(Request $request)
+    {
+        $employees = AppEmployee::with('position');
+
+        if ($request->ajax()) {
+            return datatables()->of($employees)
+                ->addIndexColumn()
+                ->addColumn('actions', function ($employee) {
+                    return view('employee.actions', compact('employee'));
+                })
+                ->toJson();
         }
     }
 }

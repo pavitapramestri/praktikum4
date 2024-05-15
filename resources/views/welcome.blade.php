@@ -10,7 +10,6 @@
 <body>
     <div class="container text-center my-5">
         <h1 class="mb-4">Belajar Controller & View pada Laravel</h1>
-        {{-- Contoh cara mereferensikan gambar di dalam file blade dengan menggunakan pendekatan Vite --}}
         <img class="img-thumbnail" src="{{ Vite::asset('resources/images/laravel.png') }}" alt="image">
 
         <div class="col-md-2 offset-md-5 mt-4">

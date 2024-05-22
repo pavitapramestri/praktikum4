@@ -10,8 +10,13 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Employee;
 use App\Models\Position;
 use App\Position as AppPosition;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
+use Barryvdh\DomPDF\PDF;
 use Illuminate\Support\Facades\Storage;
 use RealRashid\SweetAlert\Facades\Alert;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\EmployeesExport;
+
 
 class EmployeeController extends Controller
 {
@@ -24,8 +29,11 @@ class EmployeeController extends Controller
         $pageTitle = 'Employee List';
 
         confirmDelete();
-
-        return view('employee.index', compact('pageTitle'));
+        $positions = AppPosition::all();
+        return view('employee.index', [
+            'pageTitle' => $pageTitle,
+            'positions' => $positions
+        ]);
     }
 
 
@@ -84,10 +92,8 @@ class EmployeeController extends Controller
         }
 
         $employee->save();
-        // return redirect()->route('employees.index');
 
         Alert::success('Added Successfully', 'Employee Data Added Successfully.');
-
         return redirect()->route('employees.index');
     }
 
@@ -155,10 +161,8 @@ class EmployeeController extends Controller
             $employee->encrypted_filename = $encryptedFilename;
         }
         $employee->save();
-        // return redirect()->route('employees.index');
 
         Alert::success('Changed Successfully', 'Employee Data Changed Successfully.');
-
         return redirect()->route('employees.index');
     }
 
@@ -177,6 +181,7 @@ class EmployeeController extends Controller
         }
 
         $employee->delete();
+
         return redirect()->route('employees.index');
         Alert::success('Deleted Successfully', 'Employee Data Deleted Successfully.');
     }
@@ -204,5 +209,19 @@ class EmployeeController extends Controller
                 })
                 ->toJson();
         }
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new EmployeesExport, 'employees.xlsx');
+    }
+
+    public function exportPdf()
+    {
+        $employees = AppEmployee::all();
+
+        $pdf = FacadePdf::loadView('employee.export_pdf', compact('employees'));
+
+        return $pdf->download('employees.pdf');
     }
 }

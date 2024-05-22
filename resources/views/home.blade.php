@@ -1,12 +1,11 @@
 @extends('layouts.app')
-
 @section('content')
-    <div class="container mt-4">
-        <h4>{{ $pageTitle }}</h4>
-        <hr>
-        <div class="d-flex align-items-center py-2 px-4 bg-light rounded-3 border">
-            <div class="bi-house-fill me-3 fs-1"></div>
-            <h4 class="mb-0">Well done! this is {{ $pageTitle }}.</h4>
-        </div>
+    @include('default')
+    <div class="p-6 m-20 bg-white rounded shadow">
+        {!! $chart->container() !!}
     </div>
+
+    <script src="{{ $chart->cdn() }}"></script>
+
+    {{ $chart->script() }}
 @endsection
